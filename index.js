@@ -30,6 +30,11 @@ app.use(cors(corsOptions));
 // Body parser para manejar JSON
 app.use(bodyParser.json());
 
+//ping
+app.get('/', (req, res) => {
+  res.send('Working!');
+});
+
 // Endpoint para enviar notificaciones
 app.post('/sendNotification', (req, res) => {
   const { token, title, body } = req.body; // Recibe token, title y body desde la solicitud.
