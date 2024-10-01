@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors'); // Importar el paquete CORS
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const https = require('https');
+const http = require('http');
 
 // Inicializar la app de Firebase
 const serviceAccount = require('./firebase-config.json');
@@ -15,7 +18,7 @@ const app = express();
 // Configurar CORS
 const corsOptions = {
   origin: [
-    'http://localhost:4200', // Reemplaza con tu origen permitido
+    'http://localhost:4200',
     'https://wbpromos.com.ar',
     'http://localhost:8100',
     'https://wb-promos.netlify.app',
@@ -63,7 +66,22 @@ app.post('/sendNotification', (req, res) => {
     });
 });
 
-// Escuchar en el puerto 3000
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+// Cargar los certificados SSL (asegúrate de tener los archivos de clave y certificado)
+const sslOptions = {
+  key: fs.readFileSync('./ssl/key.key'), // Ruta correcta al archivo de clave privada
+  cert: fs.readFileSync('./ssl/cert.crt'), // Ruta correcta al archivo de certificado
+
+};
+
+// Crear el servidor HTTPS
+https.createServer(sslOptions, app).listen(3000, () => {
+  console.log('HTTPS Server running on port 3000');
+});
+
+// Opcional: crear un servidor HTTP que redirija a HTTPS
+http.createServer((req, res) => {
+  res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+  res.end();
+}).listen(80, () => {
+  console.log('HTTP Server running on port 80 (redirecting to HTTPS)');
 });
