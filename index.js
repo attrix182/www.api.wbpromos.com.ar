@@ -78,10 +78,4 @@ https.createServer(sslOptions, app).listen(3000, () => {
   console.log('HTTPS Server running on port 3000');
 });
 
-// Opcional: crear un servidor HTTP que redirija a HTTPS
-http.createServer((req, res) => {
-  res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
-  res.end();
-}).listen(80, () => {
-  console.log('HTTP Server running on port 80 (redirecting to HTTPS)');
-});
+
