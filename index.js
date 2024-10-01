@@ -2,9 +2,6 @@ const express = require('express');
 const cors = require('cors'); // Importar el paquete CORS
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
-const fs = require('fs');
-const https = require('https');
-const http = require('http');
 
 // Inicializar la app de Firebase
 const serviceAccount = require('./firebase-config.json');
@@ -14,6 +11,7 @@ admin.initializeApp({
 });
 
 const app = express();
+
 
 // Configurar CORS
 const corsOptions = {
@@ -66,16 +64,7 @@ app.post('/sendNotification', (req, res) => {
     });
 });
 
-// Cargar los certificados SSL (asegúrate de tener los archivos de clave y certificado)
-const sslOptions = {
-  key: fs.readFileSync('./ssl/key.key'), // Ruta correcta al archivo de clave privada
-  cert: fs.readFileSync('./ssl/cert.crt'), // Ruta correcta al archivo de certificado
-
-};
-
-// Crear el servidor HTTPS
-https.createServer(sslOptions, app).listen(3000, () => {
-  console.log('HTTPS Server running on port 3000');
+// Escuchar en el puerto 3000
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
-
-
