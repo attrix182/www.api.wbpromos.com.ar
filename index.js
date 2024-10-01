@@ -1,7 +1,10 @@
 const express = require('express');
-const cors = require('cors'); // Importar el paquete CORS
+const cors = require('cors'); 
 const admin = require('firebase-admin');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const https = require('https');
+const http = require('http');
 
 // Inicializar la app de Firebase
 const serviceAccount = require('./firebase-config.json');
@@ -12,7 +15,6 @@ admin.initializeApp({
 
 const app = express();
 
-
 // Configurar CORS
 const corsOptions = {
   origin: [
@@ -21,8 +23,8 @@ const corsOptions = {
     'http://localhost:8100',
     'https://wb-promos.netlify.app',
   ],
-  methods: ['POST', 'OPTIONS'], // Métodos permitidos
-  allowedHeaders: ['Authorization', 'Content-Type'], // Encabezados permitidos
+  methods: ['POST', 'OPTIONS'], 
+  allowedHeaders: ['Authorization', 'Content-Type'], 
 };
 
 // Usar el middleware CORS
@@ -38,7 +40,7 @@ app.get('/', (req, res) => {
 
 // Endpoint para enviar notificaciones
 app.post('/sendNotification', (req, res) => {
-  const { token, title, body } = req.body; // Recibe token, title y body desde la solicitud.
+  const { token, title, body } = req.body; 
 
   if (!token || !title || !body) {
     return res.status(400).json({ error: 'Missing required fields: token, title, body' });
@@ -49,10 +51,9 @@ app.post('/sendNotification', (req, res) => {
       title: title,
       body: body
     },
-    tokens: token // Token del dispositivo
+    tokens: token 
   };
 
-  // Enviar la notificación a FCM
   admin.messaging().sendEachForMulticast(message)
     .then((response) => {
       console.log('Successfully sent message:', response);
@@ -64,7 +65,13 @@ app.post('/sendNotification', (req, res) => {
     });
 });
 
-// Escuchar en el puerto 3000
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+// Cargar los certificados SSL
+const sslOptions = {
+  key: fs.readFileSync('./ssl/key.key'), 
+  cert: fs.readFileSync('./ssl/cert.crt'), 
+};
+
+// Crear el servidor HTTPS
+https.createServer(sslOptions, app).listen(3000, () => {
+  console.log('HTTPS Server running on port 3000');
 });
