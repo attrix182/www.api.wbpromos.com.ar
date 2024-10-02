@@ -22,7 +22,10 @@ const corsOptions = {
     'https://wbpromos.com.ar',
     'http://localhost:8100',
     'https://wb-promos.netlify.app',
-    'capacitor://localhost'
+    'capacitor://localhost',
+    'ionic://localhost',
+    'http://localhost',
+    'https://localhost'
   ],
   methods: ['POST', 'OPTIONS'], 
   allowedHeaders: ['Authorization', 'Content-Type'], 
