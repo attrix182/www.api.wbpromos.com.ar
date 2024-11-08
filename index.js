@@ -43,30 +43,44 @@ app.get('/', (req, res) => {
 });
 
 // Endpoint para enviar notificaciones
-app.post('/sendNotification', (req, res) => {
-  const { token, title, body } = req.body; 
+app.post('/sendNotification', async (req, res) => {
+  const { token, title, body } = req.body;
 
-  if (!token || !title || !body) {
-    return res.status(400).json({ error: 'Missing required fields: token, title, body' });
+  if (!token || !Array.isArray(token) || token.length === 0 || !title || !body) {
+    return res.status(400).json({ error: 'Missing required fields: tokens (array), title, body' });
   }
 
+  const MAX_TOKENS_PER_BATCH = 500;
   const message = {
     notification: {
       title: title,
       body: body
-    },
-    tokens: token 
+    }
   };
 
-  admin.messaging().sendEachForMulticast(message)
-    .then((response) => {
-      console.log('Successfully sent message:', response);
-      res.status(200).json({ success: true, response });
-    })
-    .catch((error) => {
-      console.error('Error sending message:', error);
-      res.status(500).json({ success: false, error });
-    });
+  const chunks = [];
+  for (let i = 0; i < token.length; i += MAX_TOKENS_PER_BATCH) {
+    chunks.push(token.slice(i, i + MAX_TOKENS_PER_BATCH));
+  }
+
+  const responses = [];
+  for (const chunk of chunks) {
+    try {
+      const response = await admin.messaging().sendEachForMulticast({
+        ...message,
+        tokens: chunk
+      });
+      responses.push(response);
+    } catch (error) {
+      console.error('Error sending batch:', error);
+      responses.push({ success: false, error });
+    }
+  }
+
+  res.status(200).json({
+    success: true,
+    responses
+  });
 });
 
 // Cargar los certificados SSL
@@ -76,6 +90,6 @@ const sslOptions = {
 };
 
 // Crear el servidor HTTPS
-https.createServer(sslOptions, app).listen(3000, () => {
+https.createServer(sslOptions, app).listen(3000 , () => {
   console.log('HTTPS Server running on port 3000');
 });
